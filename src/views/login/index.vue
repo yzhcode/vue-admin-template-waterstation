@@ -54,7 +54,7 @@
 
 <script>
 import { validUsername } from '@/utils/validate'
-
+import { userLogin } from 'api/user'
 export default {
   name: 'Login',
   data() {
@@ -75,7 +75,8 @@ export default {
     return {
       loginForm: {
         username: 'admin',
-        password: '111111'
+        password: '123456',
+        cgi_type: '1'
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -107,12 +108,16 @@ export default {
     },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
+        // this.$router.push({ path: this.redirect || '/' })
         if (valid) {
-          this.loading = true
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
+          this.loading = true;
+          console.log('开始登录 :>> ', this.loginForm.username, this.loginForm.password);
+          userLogin(this.loginForm.username, this.loginForm.password).then(() => {
+            console.log('跳转路由2 :>> ', this.redirect || '/');
             this.$router.push({ path: this.redirect || '/' })
             this.loading = false
-          }).catch(() => {
+          }).catch((error) => {
+            console.log('登录失败 :>> ', error);
             this.loading = false
           })
         } else {

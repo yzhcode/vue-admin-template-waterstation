@@ -35,6 +35,7 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
+import { userLogout } from 'api/user'
 
 export default {
   components: {
@@ -51,9 +52,13 @@ export default {
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
-    async logout() {
-      await this.$store.dispatch('user/logout')
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+    logout() {
+      console.log('点击登出');
+      userLogout().then((result) => {
+        
+      }).catch((err) => {
+        console.log('登出失败 :>> ', err);
+      });
     }
   }
 }

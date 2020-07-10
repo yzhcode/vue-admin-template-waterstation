@@ -1,64 +1,43 @@
-import router from './router'
-import store from './store'
-import { Message } from 'element-ui'
-import NProgress from 'nprogress' // progress bar
-import 'nprogress/nprogress.css' // progress bar style
-import { getToken } from '@/utils/auth' // get token from cookie
-import getPageTitle from '@/utils/get-page-title'
+/*
+ * @Author: your name
+ * @Date: 2020-07-06 15:11:36
+ * @LastEditTime: 2020-07-09 14:17:03
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /elementui/Users/admin/vuestudy/vue-admin-template-waterstation/src/permission.js
+ */
 
-NProgress.configure({ showSpinner: false }) // NProgress Configuration
+import store from '@/store'
 
-const whiteList = ['/login'] // no redirect whitelist
+/**
+ * @param {Array} value
+ * @returns {Boolean}
+ * @example see @/views/permission/directive.vue
+ */
+export default function checkPermission(value) {
+  if (value && value instanceof Array && value.length > 0) {
+    const role = store.getters['user/currentUserRole']();
+    const permissionRoles = value
 
-router.beforeEach(async(to, from, next) => {
-  // start progress bar
-  NProgress.start()
+    const hasPermission = roles.some(role => {
+      return permissionRoles.includes(role)
+    })
 
-  // set page title
-  document.title = getPageTitle(to.meta.title)
-
-  // determine whether the user has logged in
-  const hasToken = getToken()
-
-  if (hasToken) {
-    if (to.path === '/login') {
-      // if is logged in, redirect to the home page
-      next({ path: '/' })
-      NProgress.done()
-    } else {
-      const hasGetUserInfo = store.getters.name
-      if (hasGetUserInfo) {
-        next()
-      } else {
-        try {
-          // get user info
-          await store.dispatch('user/getInfo')
-
-          next()
-        } catch (error) {
-          // remove token and go to login page to re-login
-          await store.dispatch('user/resetToken')
-          Message.error(error || 'Has Error')
-          next(`/login?redirect=${to.path}`)
-          NProgress.done()
-        }
-      }
+    if (!hasPermission) {
+      return false
     }
+    return true
   } else {
-    /* has no token*/
-
-    if (whiteList.indexOf(to.path) !== -1) {
-      // in the free login whitelist, go directly
-      next()
-    } else {
-      // other pages that do not have permission to access are redirected to the login page.
-      next(`/login?redirect=${to.path}`)
-      NProgress.done()
-    }
+    console.error(`need roles! Like v-permission="['admin','editor']"`)
+    return false
   }
-})
+}
 
-router.afterEach(() => {
-  // finish progress bar
-  NProgress.done()
-})
+// export default {
+//   inserted(el, binding) {
+//     checkPermission(el, binding)
+//   },
+//   update(el, binding) {
+//     checkPermission(el, binding)
+//   }
+// }

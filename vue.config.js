@@ -27,7 +27,7 @@ module.exports = {
   publicPath: '/',
   outputDir: 'dist',
   assetsDir: 'static',
-  lintOnSave: process.env.NODE_ENV === 'development',
+  lintOnSave: false, // process.env.NODE_ENV === 'development',
   productionSourceMap: false,
   devServer: {
     port: port,
@@ -36,7 +36,16 @@ module.exports = {
       warnings: false,
       errors: true
     },
-    before: require('./mock/mock-server.js')
+    proxy: {
+      [process.env.VUE_APP_BASE_API]: {
+        target: 'http://10.134.10.1:11007/',
+        changeOrigin: true,
+        pathRewrite: {
+          ['^' + process.env.VUE_APP_BASE_API]: [process.env.VUE_APP_BASE_API]
+        }
+      }
+    }
+    // before: require('./mock/mock-server.js')
   },
   configureWebpack: {
     // provide the app's title in webpack's name field, so that
@@ -44,21 +53,28 @@ module.exports = {
     name: name,
     resolve: {
       alias: {
-        '@': resolve('src')
+        '@': resolve('src'),
+        'components': '@/components',
+        'api': '@/api',
+        'router': '@/router',
+        'store': '@/store',
+        'store': '@/store',
+        'assets': '@/assets',
+        'utils': '@/utils',
+        'views': '@/views',
+        'mock': resolve('mock')
       }
     }
   },
   chainWebpack(config) {
     // it can improve the speed of the first screen, it is recommended to turn on preload
-    config.plugin('preload').tap(() => [
-      {
-        rel: 'preload',
-        // to ignore runtime.js
-        // https://github.com/vuejs/vue-cli/blob/dev/packages/@vue/cli-service/lib/config/app.js#L171
-        fileBlacklist: [/\.map$/, /hot-update\.js$/, /runtime\..*\.js$/],
-        include: 'initial'
-      }
-    ])
+    config.plugin('preload').tap(() => [{
+      rel: 'preload',
+      // to ignore runtime.js
+      // https://github.com/vuejs/vue-cli/blob/dev/packages/@vue/cli-service/lib/config/app.js#L171
+      fileBlacklist: [/\.map$/, /hot-update\.js$/, /runtime\..*\.js$/],
+      include: 'initial'
+    }])
 
     // when there are many pages, it will cause too many meaningless requests
     config.plugins.delete('prefetch')
@@ -87,7 +103,7 @@ module.exports = {
             .plugin('ScriptExtHtmlWebpackPlugin')
             .after('html')
             .use('script-ext-html-webpack-plugin', [{
-            // `runtime` must same as runtimeChunk name. default is `runtime`
+              // `runtime` must same as runtimeChunk name. default is `runtime`
               inline: /runtime\..*\.js$/
             }])
             .end()
