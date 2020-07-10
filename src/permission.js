@@ -23,6 +23,7 @@ export default function checkPermission(value) {
       return permissionRoles.includes(role)
     })
 
+    
     if (!hasPermission) {
       return false
     }
