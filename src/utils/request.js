@@ -48,8 +48,8 @@ service.interceptors.request.use(
     }
 
     // console.log('userid :>> ', USER_ID);
-    let idd = store.getters['user/renderUserAttr'](USER_NAME);
-    console.log('userid2 :>> ', idd);
+    let username = store.getters['user/renderUserAttr'](USER_NAME);
+    console.log('username :>> ', username);
 
     // if (store.getters.token) {
     //   // let each request carry token

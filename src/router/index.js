@@ -103,6 +103,20 @@ export const asyncRoutes = [{
     }]
   },
   {
+    path: '/areaManager',
+    component: Layout,
+    children: [{
+      path: '',
+      name: 'areaManager',
+      component: () => import('@/views/whole/area/areaManage'),
+      meta: {
+        title: '区域管理',
+        icon: 'dashboard',
+        roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+      }
+    }]
+  },
+  {
     path: '/wholeMap',
     component: Layout,
     children: [{
