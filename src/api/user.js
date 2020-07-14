@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-07-06 15:11:36
- * @LastEditTime: 2020-07-09 14:12:00
+ * @LastEditTime: 2020-07-14 09:18:49
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /elementui/Users/admin/vuestudy/vue-admin-template-waterstation/src/api/user.js
@@ -59,11 +59,8 @@ export function userLogin(username, password) {
             [USER_LOGIN_TIME, data.lastlogintime]
           ];
   
-          store.dispatch('user/commitUserAttr2', {
-            value: commitdata,
-            success() {
-              resolve();
-            }
+          store.dispatch('user/commitUserAttr', commitdata).then(res => {
+            resolve();
           });
         } else {
           reject("登陆失败")
@@ -88,12 +85,12 @@ export function userLogout() {
       method: 'get'
     }).then(res => {
       let json = res.data;
+      
       console.log("登出结束 >> ",json);
       if (json.result == "success") {
-        store.dispatch('user/removeUserAttr');
-        router.push(`/login?redirect=${router.fullPath}`)
-        resetRouter();
-        resolve();
+        store.dispatch('user/invalidUserAttr').then(() => {
+          resolve(json);
+        });
       } else {
         reject(json.errmsg)
       }

@@ -284,8 +284,9 @@ router.beforeEach(async (to, from, next) => {
   const role = store.getters['user/currentUserRole']();
   let islogin = (role != USER_ROLE_UNKNOW);
 
+  console.log('---------------beforeEach start----------------');
   console.log('beforeEach username >> ', username, 'role', role);
-  console.log('from (', from.path, ') to (', to.path, ')');
+  console.log('will from (', from.path, ') to (', to.path, ')');
   if (islogin) {
 
     // hack method to ensure that addRoutes is complete
@@ -315,11 +316,14 @@ router.beforeEach(async (to, from, next) => {
       console.log('go to white list item >> ', to.path);
       next()
     } else {
+      console.log('go to login and redirect >> ', to.path);
       // other pages that do not have permission to access are redirected to the login page.
       next(`/login?redirect=${to.path}`)
       NProgress.done()
     }
   }
+
+  console.log('---------------beforeEach end----------------');
 })
 
 router.afterEach((to, from) => {
@@ -337,10 +341,6 @@ router.afterEach((to, from) => {
 export function resetRouter() {
   const newRouter = createRouter()
   router.matcher = newRouter.matcher // reset router
-  // const accessRoutes = store.dispatch('permission/generateRoutes', roles)
-
-  //         // dynamically add accessible routes
-  //         router.addRoutes(accessRoutes)
 }
 
 export default router

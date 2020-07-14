@@ -81,48 +81,31 @@ service.interceptors.response.use(
   response => {
     const res = response.data
     // if the custom code is not 20000, it is judged as an error.
+    console.log('response.status :>> ', response.status);
     if (response.status === 200) {
       if (response.data.result == "noauth") {
-        Message({
-          message: '请重新登录',
-          type: 'error',
-          duration: 5 * 1000
-        })
-        // 清除登陆信息
-        // vm.global_.removeLoginInfo();
-        // 重定向
-        // vm.$router.replace({
-        //   name: "login"
-        // }).catch(data => {});
-        //关闭bootstrap弹出框
-        // $('.modal').modal('hide');
-        //关闭load加载提示
-        // vm.$loading.hide();
-        // return Promise.reject(response);
-        MessageBox.confirm('登录信息过期', '确认重新登录吗?', {
-          confirmButtonText: '重新登录',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          store.dispatch('user/resetToken').then(() => {
-            location.reload()
+        return new Promise((resolve, reject) => {
+          Message({
+            message: '请重新登录',
+            type: 'error',
+            duration: 5 * 1000
           })
-        })
+   
+  
+          store.dispatch('user/invalidUserAttr').then(() => {
+            console.log('location reload');
+            // location.reload()
+            // resolve();
+          });
+        });
+      } else {
+        return Promise.resolve(response);
       }
-      return Promise.resolve(response);
     } else {
       return Promise.reject(response);
     }
   },
   error => {
-    // console.log('err' + error) // for debug
-    // Message({
-    //   message: error.message,
-    //   type: 'error',
-    //   duration: 5 * 1000
-    // })
-    // return Promise.reject(error)
-
     console.log("错误回调", error);
     if (error.message.includes('timeout')) { // 判断请求异常信息中是否含有超时timeout字符串
       // vm.$loading.hide();

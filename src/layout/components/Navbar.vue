@@ -55,7 +55,8 @@ export default {
     logout() {
       console.log('点击登出');
       userLogout().then((result) => {
-        
+        console.log('logout 成功，带重定向跳转到login页面');
+        this.$router.push(`/login?redirect=${this.$route.fullPath}`)
       }).catch((err) => {
         console.log('登出失败 :>> ', err);
       });

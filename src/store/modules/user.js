@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-07-06 15:11:36
- * @LastEditTime: 2020-07-09 15:02:28
+ * @LastEditTime: 2020-07-14 09:39:08
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /elementui/Users/admin/vuestudy/vue-admin-template-waterstation/src/store/modules/user.js
@@ -80,18 +80,6 @@ const mutations = {
       console.log('push user attr :>> 没有这个key属性', key);
     }
   },
-  pushUserAttrArray(state, keyValueArray) {
-    console.log('pushUserAttrArray :>> ', keyValueArray);
-    keyValueArray.forEach(element => {
-      let [key, value] = element;
-      console.log('push user attr :>> ', [key, value]);
-      if (state.hasOwnProperty(key)) {
-        state[key] = value;
-      } else {
-        console.log('push user attr :>> 没有这个key属性', key);
-      }
-    });
-  },
   removeUserAttr(state) {
     state[USER_ID] = "";
     state[USER_NAME] = "";
@@ -107,47 +95,64 @@ const mutations = {
  * @type {Object}
  */
 const actions = {
-  commitUserAttr(context, item) {
-    console.log('commit user attr :>> ', item);
-    if ((item instanceof Array) && item.length > 0) {
-      // console.log('提交item是数组');
-      if (item[0] instanceof Array) {
-        // console.log('提交item是二维数组');
-        context.commit('pushUserAttrArray', item);
-      } else {
-        // console.log('提交item是一维数组');
-        context.commit('pushUserAttr', item);
-      }
-    } else {
-      // console.log('提交item不是数组');
-    }
+  removeUserAttr(context) {
+    return new Promise((resolve, reject) => {
+      console.log('remove user attr');
+      context.commit('removeUserAttr');
+      console.log('user roles change:>> ', USER_ROLE_UNKNOW);
+      context.commit('permission/setRoute', USER_ROLE_UNKNOW, {
+        root: true
+      });
+      resolve();
+    });
   },
-  removeUserAttr(context, item) {
-    context.commit('removeUserAttr', item);
+  invalidUserAttr(context) {
+    return new Promise((resolve, reject) => {
+      console.log('remove user attr');
+      context.commit('removeUserAttr');
+      console.log('user roles change:>> ', USER_ROLE_UNKNOW);
+      context.commit('permission/setRoute', USER_ROLE_UNKNOW, {
+        root: true
+      });
+      resolve();
+    });
   },
-  commitUserAttr2 (context, payload) {
-    let item = payload.value;
-    console.log('commit user attr :>> ', item);
-    if ((item instanceof Array) && item.length > 0) {
-      // console.log('提交item是数组');
-      if (item[0] instanceof Array) {
-        // console.log('提交item是二维数组');
-        context.commit('pushUserAttrArray', item);
-      } else {
-        // console.log('提交item是一维数组');
-        context.commit('pushUserAttr', item);
-      }
-    } else {
-      console.log('提交item不是数组');
-      return;
-    }
+  commitUserAttr (context, payload) {
+    return new Promise((resolve, reject) => {
+      console.log('commitUserAttr payload :>> ', payload);
+      
+      if ((payload instanceof Array) && payload.length > 0) {
+        let needResetRoute = false;
+        if (payload[0] instanceof Array) {
+          payload.forEach(element => {
+            context.commit('pushUserAttr', element);
+            let [key, value] = element;
+            if (key == USER_ROLE || key == USER_ROLE_TYPE) {
+              needResetRoute = true;
+            }
+          });
+        } else {
+          context.commit('pushUserAttr', payload);
+          let [key, value] = element;
+            if (key == USER_ROLE || key == USER_ROLE_TYPE) {
+              needResetRoute = true;
+            }
+        }
 
-    let roles = context.getters['currentUserRole']();
-    console.log('roles2 :>> ', roles);
-    context.commit('permission/SET_ROUTES', roles, { root: true })
-    if (payload.success) {
-      payload.success();
-    }
+        if (needResetRoute) {
+          let roles = context.getters['currentUserRole']();
+          console.log('user roles change:>> ', roles);
+          context.commit('permission/setRoute', roles, {
+            root: true
+          });
+        }
+        
+        resolve(payload)
+      } else {
+        console.log('commitUserAttr 提交payload无效');
+        reject(payload)
+      }
+    });
   }
 }
 

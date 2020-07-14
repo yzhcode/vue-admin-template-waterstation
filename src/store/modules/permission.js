@@ -1,30 +1,29 @@
 /*
  * @Author: your name
  * @Date: 2020-07-09 11:02:15
- * @LastEditTime: 2020-07-09 17:11:11
+ * @LastEditTime: 2020-07-14 09:32:18
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /elementui/Users/admin/vuestudy/vue-admin-template-waterstation/src/store/modules/permission.js
  */ 
 import { asyncRoutes, staticRoutes } from '@/router'
+import { resetRouter } from '@/router'
 import router from '@/router'
 /**
  * Use meta.role to determine if the current user has permission
  * @param roles
  * @param route
  */
-function hasPermission(roles, route) {
-  
-  // console.log('check route :>> ', route.meta.title, ' roles: ', roles);
+function hasPermission(userRole, route) {
   if (route.meta && route.meta.roles) {
-    console.log('check route :>> ', route.meta.title, ' roles: ', roles, 'metaroles:', route.meta.roles);
-    if (roles instanceof Array) {
-      return route.meta.roles.some(role => roles.includes(role));
+    console.log('check route :>> ', route.meta.title, ' userRole: ', userRole, 'metaroles:', route.meta.roles);
+    if (userRole instanceof Array) {
+      return route.meta.roles.some(role => userRole.includes(role));
     } else {
-      return route.meta.roles.includes(roles);
+      return route.meta.roles.includes(userRole);
     }
   } else {
-    console.log('check path :>> ', route.path, ' roles: ', roles);
+    console.log('check path :>> ', route.path, ' userRole: ', userRole);
     return true;
   }
 }
@@ -34,14 +33,14 @@ function hasPermission(roles, route) {
  * @param routes asyncRoutes
  * @param roles
  */
-export function filterAsyncRoutes(routes, roles) {
+export function filterAsyncRoutes(routes, userRole) {
   const res = []
 
   routes.forEach(route => {
     const tmp = { ...route }
-    if (hasPermission(roles, tmp)) {
+    if (hasPermission(userRole, tmp)) {
       if (tmp.children) {
-        tmp.children = filterAsyncRoutes(tmp.children, roles)
+        tmp.children = filterAsyncRoutes(tmp.children, userRole)
       }
       res.push(tmp)
     }
@@ -56,32 +55,29 @@ const state = {
 }
 
 const mutations = {
-  SET_ROUTES: (state, roles) => {
-    console.log('roles :>> ', roles);
-    let accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
+  setRoute: (state, userRole) => {
+    console.log('----------------setRoute start----------------');
+    console.log('resetRouter...');
+    resetRouter();
+    console.log('userRole :>> ', userRole);
+    let accessedRoutes = filterAsyncRoutes(asyncRoutes, userRole)
     console.log('accessedRoutes :>> ', accessedRoutes);
     console.log('staticRoutes :>> ', staticRoutes);
     state.addRoutes = accessedRoutes
     let allrouter = staticRoutes.concat(accessedRoutes);
     console.log('allrouter :>> ', allrouter);
     router.addRoutes(accessedRoutes)
-    router.options.route
-    state.routes = staticRoutes.concat(accessedRoutes)
-
+    router.options.route = accessedRoutes;
+    state.routes = staticRoutes.concat(accessedRoutes);
+    console.log('----------------setRoute end----------------');
   }
 }
 
 const actions = {
-  generateRoutes({ commit }, roles) {
+  generateRoutes({ commit }, userRole) {
     return new Promise(resolve => {
-      
-      // if (roles.includes('admin')) {
-      //   accessedRoutes = asyncRoutes || []
-      // } else {
-      //   accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
-      // }
-      commit('SET_ROUTES', accessedRoutes)
-      resolve(accessedRoutes)
+      commit('setRoute', userRole)
+      resolve(userRole)
     })
   }
 }
