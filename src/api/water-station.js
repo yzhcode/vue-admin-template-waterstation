@@ -26,7 +26,7 @@ export function loadWaterStationList() {
         //添加标注
         //   this.createMarker();
       } else {
-        //   this.global_.showToastErrmsg(jsonData.errmsg, "");
+        //   this.$showToastErrmsg(jsonData.errmsg, "");
       }
   })
 }

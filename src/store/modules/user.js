@@ -1,27 +1,32 @@
 /*
  * @Author: your name
  * @Date: 2020-07-06 15:11:36
- * @LastEditTime: 2020-07-14 09:39:08
+ * @LastEditTime: 2020-07-16 09:00:00
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /elementui/Users/admin/vuestudy/vue-admin-template-waterstation/src/store/modules/user.js
  */
 
-import store from 'router'
+import userhelper from '@/utils/user'
+import {
+  USER_ID,
+  USER_NAME,
+  USER_ROLE,
+  USER_ROLE_TYPE,
+  USER_MANAGER_ID,
+  USER_LOGIN_TIME
+} from '@/utils/user';
 
-export const USER_ID = "user_id";
-export const USER_NAME = "username";
-export const USER_ROLE = "role";
-export const USER_ROLE_TYPE = "role_type";
-export const USER_MANAGER_ID = "manage_wateraffairs_id";
-export const USER_LOGIN_TIME = "lastlogintime";
+import {
+  USER_ROLE_UNKNOW,
+  USER_ROLE_GALAXYWIND,
+  USER_ROLE_GOV_AREA,
+  USER_ROLE_HC_AREA,
+  USER_ROLE_GOV_STATION,
+  USER_ROLE_HC_STATION
+} from 'utils/user';
 
-export const USER_ROLE_UNKNOW = 0; //  未知角色
-export const USER_ROLE_GALAXYWIND = 1; //  银河风云运维
-export const USER_ROLE_GOV_AREA = 2; //  政区域管理
-export const USER_ROLE_HC_AREA = 3; //  华晨区域管理
-export const USER_ROLE_GOV_STATION = 4; //  政单站管理
-export const USER_ROLE_HC_STATION = 5; //  华晨单站管理
+
 
 const state = {};
 state[USER_ID] = "";
@@ -47,23 +52,7 @@ const getters = {
     let role = state[USER_ROLE];
     let role_type = state[USER_ROLE_TYPE];
 
-    if (role == "1") {
-      return USER_ROLE_GALAXYWIND;
-    } else if (role == "2") {
-      if (role_type == '1') {
-        return USER_ROLE_GOV_AREA;
-      } else if (role_type == '2') {
-        return USER_ROLE_HC_AREA;
-      }
-    } else if (role == '3') {
-      if (role_type == '1') {
-        return USER_ROLE_GOV_STATION;
-      } else if (role_type == '2') {
-        return USER_ROLE_HC_STATION;
-      }
-    }
-
-    return USER_ROLE_UNKNOW;
+    return userhelper.getUserRole(role, role_type);
   }
 }
 

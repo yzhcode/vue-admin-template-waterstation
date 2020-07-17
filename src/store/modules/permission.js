@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-07-09 11:02:15
- * @LastEditTime: 2020-07-14 09:32:18
+ * @LastEditTime: 2020-07-15 16:55:46
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /elementui/Users/admin/vuestudy/vue-admin-template-waterstation/src/store/modules/permission.js
@@ -15,15 +15,19 @@ import router from '@/router'
  * @param route
  */
 function hasPermission(userRole, route) {
+  console.log('check route : >>', route);
   if (route.meta && route.meta.roles) {
     console.log('check route :>> ', route.meta.title, ' userRole: ', userRole, 'metaroles:', route.meta.roles);
     if (userRole instanceof Array) {
+      console.log('check ret1 :>> ', route.meta.roles.some(role => userRole.includes(role)));
       return route.meta.roles.some(role => userRole.includes(role));
     } else {
+      console.log('check ret2 :>> ', route.meta.roles.includes(userRole));
       return route.meta.roles.includes(userRole);
     }
   } else {
-    console.log('check path :>> ', route.path, ' userRole: ', userRole);
+    console.log('check route :>> ', route.path, ' userRole: ', userRole);
+    console.log('check ret3 :>> ', true);
     return true;
   }
 }
@@ -66,8 +70,8 @@ const mutations = {
     state.addRoutes = accessedRoutes
     let allrouter = staticRoutes.concat(accessedRoutes);
     console.log('allrouter :>> ', allrouter);
-    router.addRoutes(accessedRoutes)
     router.options.route = accessedRoutes;
+    router.addRoutes(accessedRoutes)
     state.routes = staticRoutes.concat(accessedRoutes);
     console.log('----------------setRoute end----------------');
   }

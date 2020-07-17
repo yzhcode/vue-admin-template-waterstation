@@ -1,8 +1,8 @@
 /*
  * @Author: your name
  * @Date: 2020-07-06 15:11:36
- * @LastEditTime: 2020-07-14 15:37:51
- * @LastEditors: your name
+ * @LastEditTime: 2020-07-16 15:47:15
+ * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /elementui/Users/admin/vuestudy/vue-admin-template-waterstation/src/main.js
  */ 
@@ -21,7 +21,28 @@ import store from './store'
 import router from './router'
 
 import '@/icons' // icon
-import '@/permission' // permission control
+
+import popup from '@/utils/popup'
+Vue.use(popup)
+Vue.prototype.$popup = popup
+
+import dom from '@/utils/dom'
+Vue.use(dom)
+Vue.prototype.$dom = dom
+
+import server from '@/utils/request'
+Vue.use(server)
+
+import user from '@/utils/user'
+Vue.use(user)
+Vue.prototype.$user = user
+
+import timer from '@/utils/timer'
+Vue.use(timer)
+Vue.prototype.$timer = timer
+
+// import $ from 'jquery';
+// import '@/permission' // permission control
 
 /**
  * If you don't want to use mock-server
@@ -42,6 +63,12 @@ import '@/permission' // permission control
 Vue.use(ElementUI)
 
 Vue.config.productionTip = false
+
+// import "@/assets/js/perfect-scrollbar.jquery";
+// import "@/assets/css/perfect-scrollbar.css";
+// import '@/assets/js/jquery.simplePagination.js';
+// import "@/assets/css/simplePagination.css";
+
 
 new Vue({
   el: '#app',

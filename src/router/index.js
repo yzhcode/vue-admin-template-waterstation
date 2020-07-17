@@ -14,7 +14,7 @@ import {
   USER_ROLE_TYPE,
   USER_MANAGER_ID,
   USER_LOGIN_TIME
-} from 'store/modules/user';
+} from '@/utils/user';
 
 import {
   USER_ROLE_UNKNOW,
@@ -23,16 +23,14 @@ import {
   USER_ROLE_HC_AREA,
   USER_ROLE_GOV_STATION,
   USER_ROLE_HC_STATION
-} from 'store/modules/user';
+} from 'utils/user';
 
-import {
-  getUserRole
-} from 'store/modules/user'
 
 Vue.use(Router)
 
 /* Layout */
 import Layout from '@/layout'
+// import { push } from 'core-js/fn/array'
 // import { from } from 'core-js/fn/array'
 
 /**
@@ -60,7 +58,6 @@ import Layout from '@/layout'
  * all roles can be accessed
  */
 
-
 export const staticRoutes = [{
     path: '/login',
     name: 'login',
@@ -80,7 +77,6 @@ export const staticRoutes = [{
       title: '错误'
     }
   },
-
   {
     path: '/',
     name: 'index',
@@ -88,197 +84,246 @@ export const staticRoutes = [{
   }
 ];
 
-export const asyncRoutes = [{
-    path: '/dashboard',
-    component: Layout,
-    children: [{
-      path: '',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: {
-        title: 'Dashboard',
-        icon: 'dashboard',
-        roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA]
-      }
-    }]
+const asyncRoutesConfig = [{
+    name: 'dashboard',
+    component: () => import('@/views/dashboard/index'),
+    title: 'Dashboard',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA]
   },
   {
-    path: '/areaManager',
-    component: Layout,
+    name: 'areaManage',
+    component: () => import('@/views/adminView/areaManager'),
+    title: '区域管理',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+  },
+  {
+    name: 'wholeManage',
+    // component: () => import('@/views/whole/manage/wholeManage'),
+    component: () => import('@/views/adminView/areaManager'),
+    title: '水站管理',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+  },
+  {
+    name: 'regionAccountManager',
+    // component: () => import('@/views/whole/account/regionAccountManager'),
+    component: () => import('@/views/adminView/areaManager'),
+    title: '区域账号管理',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+  },
+  {
+    title: '设备管理',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
     children: [{
-      path: '',
-      name: 'areaManager',
-      component: () => import('@/views/whole/area/areaManage'),
-      meta: {
-        title: '区域管理',
+        name: 'cloudBox',
+        // component: () => import('@/views/station/device/cloudBox'),
+        component: () => import('@/views/adminView/areaManager'),
+        title: '云盒子',
+        icon: 'dashboard',
+        roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+      },
+      {
+        name: 'videoManage',
+        // component: () => import('@/views/station/device/videoManage'),
+        component: () => import('@/views/adminView/areaManager'),
+        title: '摄像头',
         icon: 'dashboard',
         roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
       }
-    }]
+    ]
   },
   {
-    path: '/wholeMap',
-    component: Layout,
+    name: 'monitorLocation',
+    // component: () => import('@/views/station/setting/monitorLocation'),
+    component: () => import('@/views/adminView/areaManager'),
+    title: '应用管理',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+  },
+
+  {
+    name: 'wholeMap',
+    // component: () => import('@/views/whole/map/wholeMap'),
+    component: () => import('@/views/adminView/areaManager'),
+    title: '水站地图',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+  },  /*
+  {
+    title: '实时监控',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
     children: [{
-      path: '',
-      name: 'wholeMap',
-      component: () => import('@/views/table/index'),
-      meta: {
-        title: '水站地图',
+        name: 'wholeDataMonitoring',
+        component: () => import('@/views/whole/dataMonitoring/wholeDataMonitoring1'),
+        title: '水站监控',
         icon: 'dashboard',
-        roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-      }
-    }]
-  },
-  {
-    path: '/realtimeMonitor',
-    name: 'realtimeMonitor',
-    component: Layout,
-    meta: {
-      title: '实时监控',
-      icon: 'dashboard',
-      roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-    },
-    children: [{
-        path: '/wholeDataMonitoring',
-        name: 'wholeDataMonitoring',
-        component: () => import('@/views/table/index'),
-        meta: {
-          title: '水站监控',
-          icon: 'dashboard',
-          roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-        },
+        roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
       },
       {
-        path: '/wholeVideoMonitoring',
         name: 'wholeVideoMonitoring',
-        component: () => import('@/views/table/index'),
-        meta: {
-          title: '实时视频',
-          icon: 'dashboard',
-          roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-        },
-      }
-    ]
-  },
-  {
-    path: '/dataAnalysis',
-    name: 'dataAnalysis',
-    component: Layout,
-    meta: {
-      title: '数据分析',
-      icon: 'dashboard',
-      roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-    },
-    children: [{
-        path: '/wholeDataMonitoring',
-        name: 'wholeDataMonitoring',
-        component: () => import('@/views/table/index'),
-        meta: {
-          title: '报警日志',
-          icon: 'dashboard',
-          roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-        },
-      },
-      {
-        path: '/wholeVideoMonitoring',
-        name: 'wholeVideoMonitoring',
-        component: () => import('@/views/table/index'),
-        meta: {
-          title: '历史数据',
-          icon: 'dashboard',
-          roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-        },
-      }
-    ]
-  },
-  {
-    path: '/workOrder',
-    name: 'workOrder',
-    component: Layout,
-    meta: {
-      title: '工单管理',
-      icon: 'dashboard',
-      roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-    },
-    children: [{
-        path: '/wholeDataMonitoring',
-        name: 'wholeDataMonitoring',
-        component: () => import('@/views/table/index'),
-        meta: {
-          title: '工单派发',
-          icon: 'dashboard',
-          roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-        },
-      },
-      {
-        path: '/wholeVideoMonitoring',
-        name: 'wholeVideoMonitoring',
-        component: () => import('@/views/table/index'),
-        meta: {
-          title: '工单状态',
-          icon: 'dashboard',
-          roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-        },
-      }
-    ]
-  },
-  {
-    path: '/deviceManager',
-    name: 'deviceManager',
-    component: Layout,
-    meta: {
-      title: '设备管理',
-      icon: 'dashboard',
-      roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-    },
-    children: [{
-        path: '/wholeDataMonitoring',
-        name: 'wholeDataMonitoring',
-        component: () => import('@/views/table/index'),
-        meta: {
-          title: '云盒子',
-          icon: 'dashboard',
-          roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-        },
-      },
-      {
-        path: '/wholeVideoMonitoring',
-        name: 'wholeVideoMonitoring',
-        component: () => import('@/views/table/index'),
-        meta: {
-          title: '摄像头',
-          icon: 'dashboard',
-          roles: [USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
-        },
-      }
-    ]
-  },
-  {
-    path: '/inspection',
-    component: Layout,
-    children: [{
-      path: '',
-      name: 'inspection',
-      component: () => import('@/views/table/index'),
-      meta: {
-        title: '巡查统计',
+        component: () => import('@/views/whole/videoMonitoring/wholeVideoMonitoring'),
+        title: '实时视频',
         icon: 'dashboard',
         roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
       }
-    }]
-  }
+    ]
+  },*/
+  {
+    title: '数据分析',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+    children: [{
+        name: 'wholeAlarmLog',
+        // component: () => import('@/views/whole/alarm/wholeAlarmLog'),
+        component: () => import('@/views/adminView/areaManager'),
+        title: '报警日志',
+        icon: 'dashboard',
+        roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+      },
+      {
+        name: 'wholeStatisticsTrend',
+        // component: () => import('@/views/whole/statistics/wholeStatisticsTrend'),
+        component: () => import('@/views/adminView/areaManager'),
+        title: '历史数据',
+        icon: 'dashboard',
+        roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+      }
+    ]
+  },
+  {
+    name: 'wholeAttendance',
+    // component: () => import('@/views/whole/attendance/wholeAttendance'),
+    component: () => import('@/views/adminView/areaManager'),
+    title: '巡查统计',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+  },
+  /*
+  {
+    title: '工单管理',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+    children: [{
+        name: 'wholeWorkOrderManager',
+        component: () => import('@/views/whole/workOrder/wholeworkOrderManagement'),
+        title: '工单派发',
+        icon: 'dashboard',
+        roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+      },
+      {
+        name: 'wholeWorkOrderHis',
+        component: () => import('@/views/whole/workOrder/wholeWorkOrderHis'),
+        title: '工单状态',
+        icon: 'dashboard',
+        roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+      }
+    ]
+  },
+  */
+  {
+    title: '系统管理',
+    icon: 'dashboard',
+    roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+    children: [{
+        name: 'wholeManage1',
+        // component: () => import('@/views/whole/manage/wholeManage'),
+        component: () => import('@/views/adminView/areaManager'),
+        title: '水站管理',
+        icon: 'dashboard',
+        roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+      },
+      {
+        name: 'wholeAccount',
+        // component: () => import('@/views/whole/account/wholeAccount'),
+        component: () => import('@/views/adminView/areaManager'),
+        title: '账号管理',
+        icon: 'dashboard',
+        roles: [USER_ROLE_GALAXYWIND, USER_ROLE_GOV_AREA, USER_ROLE_HC_AREA],
+      }
+    ]
+  },
 ];
 
-const createRouter = () => new Router({
+function createRoutesWithConfig(routesConfig) {
+  const routes = [];
+  routesConfig.forEach(element => {
+    if (element.children && element.children.length) {
+      let newelement = {
+        name: element.title,
+        path: '/'+element.title,
+        component: Layout,
+        meta: {
+          title: element.title,
+          icon: element.icon,
+          roles: []
+        },
+        children:[]
+      };
+
+      element.children.forEach(element => {
+        newelement.children.push({
+          path: '/'+element.name,
+          name: element.name,
+          component: element.component,
+          meta: {
+            title: element.title,
+            icon: element.icon,
+            roles: element.roles
+          }
+        });
+
+        newelement.meta.roles = Array.from(new Set(newelement.meta.roles.concat(element.roles)))
+      });
+
+      routes.push(newelement);
+
+    } else {
+      let newelement = {
+        name: element.title,
+        path: '/'+element.title,
+        component: Layout,
+        meta: {
+          roles: element.roles
+        },
+        children:[]
+      };
+
+      newelement.children.push({
+        path: '/'+element.name,
+        name: element.name,
+        component: element.component,
+        meta: {
+          title: element.title,
+          icon: element.icon,
+          roles: element.roles
+        }
+      });
+
+      routes.push(newelement)
+    }
+  });
+
+  console.log('routes :>> ', routes);
+
+  return routes;
+}
+
+export const asyncRoutes = createRoutesWithConfig(asyncRoutesConfig);
+
+const createRouter = (first) => new Router({
   mode: 'history', // require service support
   scrollBehavior: () => ({
     y: 0
   }),
-  routes: staticRoutes.concat(asyncRoutes)
+  routes: first?staticRoutes.concat(asyncRoutes):staticRoutes
 })
 
-const router = createRouter()
+const router = createRouter(true)
 
 NProgress.configure({
   showSpinner: false
@@ -288,8 +333,8 @@ const whiteList = ['/login'] // no redirect whitelist
 
 router.beforeEach(async (to, from, next) => {
   // start progress bar
+  
   NProgress.start()
-
   // set page title
   // document.title = getPageTitle(to.meta.title)
 
@@ -353,7 +398,7 @@ router.afterEach((to, from) => {
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {
-  const newRouter = createRouter()
+  const newRouter = createRouter(false)
   router.matcher = newRouter.matcher // reset router
 }
 

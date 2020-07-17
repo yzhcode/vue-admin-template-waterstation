@@ -1,350 +1,266 @@
 <template>
-  <div class="app-container">
-    <div class="filter-container">
-      <el-input v-model="listQuery.title" placeholder="区域名称" style="width: 120px;" class="filter-item" @keyup.enter.native="handleFilter" />
-      <el-select v-model="listQuery.type" placeholder="区域类型" clearable style="width: 120px" class="filter-item">
-        <el-option v-for="item in areaTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
-      </el-select>
-      <el-select v-model="listQuery.sort" style="width: 140px" class="filter-item" @change="handleFilter">
-        <el-option v-for="item in sortOptions" :key="item.key" :label="item.label" :value="item.key" />
-      </el-select>
-      <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-        Search
-      </el-button>
-      <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="handleCreate">
-        Add
-      </el-button>
-    </div>
-
-    <el-table
-      :key="tableKey"
-      v-loading="listLoading"
-      :data="list"
-      border
-      fit
-      highlight-current-row
-      style="width: 100%;"
-      @sort-change="sortChange"
-    >
-      <el-table-column label="ID" prop="id" sortable="custom" align="center" width="80" :class-name="getSortClass('id')">
-        <template slot-scope="{row}">
-          <span>{{ row.id }}</span>
-        </template>
+  <div class="areaMange">
+    <el-button type="primary" class="mb-15" @click="addArea()">添加区域</el-button>
+    <p class="emptyItem" v-show="dataSource.length == 0">{{empty_notice}}</p>
+    <el-table v-loading="listLoading" element-loading-text="努力加载中..." :data="dataSource" border stripe
+      :header-cell-style="{color:'#FFF',backgroundColor:'#2582F7'}">
+      <el-table-column type="index" min-width="10%" align="center" :index="indexMethod">
       </el-table-column>
-      <el-table-column label="区域名称" min-width="150px">
-        <template slot-scope="{row}">
-          <span class="link-type">{{ row.region }}</span>
-          <!-- <el-tag>{{ row.type | typeFilter }}</el-tag> -->
+
+      <el-table-column label="区域名称" min-width="20%">
+        <template slot-scope="scope">
+          {{scope.row.region | nullValueFormat}}
         </template>
       </el-table-column>
 
-      <el-table-column label="区域类型" width="80px">
-        <template slot-scope="{row}">
-          <span>{{ areaTypeRender(row.type) }}</span>
+      <el-table-column label="区域类型" min-width="20%">
+        <template slot-scope="scope">
+          {{scope.row.type | filterAreaType}}
         </template>
       </el-table-column>
-      <el-table-column label="最后修改时间" width="150px" align="center">
-        <template slot-scope="{row}">
-          <span>{{ row.ctime }}</span>
-          <!-- <span>{{ row.ctime | parseTime('{y}-{m}-{d} {h}:{i}:{s}') }}</span> -->
+
+      <el-table-column label="最后修改时间" min-width="50%">
+        <template slot-scope="scope">
+          {{$timer.getTimeByFilter(scope.row.ctime) | nullValueFormat}}
         </template>
       </el-table-column>
-      <el-table-column label="Actions" align="center" width="230" class-name="small-padding fixed-width">
-        <template slot-scope="{row,$index}">
-          <el-button type="primary" size="mini" @click="handleUpdate(row)">
-            Edit
-          </el-button>
-          <el-button v-if="row.status!='deleted'" size="mini" type="danger" @click="handleDelete(row,$index)">
-            Delete
-          </el-button>
+
+      <el-table-column label="操作" min-width="25%">
+        <template slot-scope="scope">
+          <el-button type="primary" @click="addArea(scope.row)">编辑</el-button>
         </template>
       </el-table-column>
+
     </el-table>
 
-    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
+    <el-pagination v-show="allData.length > 0" @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      :current-page="currentPage" :total="allData.length" layout="total, prev, pager, next">
+    </el-pagination>
 
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="110px" style="width: 300px; margin-left:50px;">
-        <el-form-item label="区域名称" prop="title">
-          <el-input v-model="temp.title" style="width: 200px"/>
+    <!-- 区域配置 -->
+    <el-dialog :title="editRowDialogTitle" :visible.sync="editRowDialogVisible" width="400px">
+      <el-form ref="form" label-width="80px">
+        <el-form-item label="区域名称" required>
+          <el-input type="text" v-model.trim="areaName" maxlength='20'></el-input>
         </el-form-item>
-        <el-form-item label="区域类型" prop="type">
-          <el-select v-model="temp.type" placeholder="区域类型" style="width: 200px">
-            <el-option v-for="item in areaTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+        <el-form-item label="区域类型">
+          <el-select v-model="areaType" :disabled="!editRowIsAdd">
+            <el-option v-for="item in areaArray" :key="item.value" :label="item.label" :value="item.value">
+            </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="最后修改时间" prop="timestamp">
-          <el-date-picker v-model="temp.ctime" type="datetime" placeholder="日期" style="width: 200px"/>
+        <el-form-item>
+          <el-button type="primary" @click="areaManageSave()">确定</el-button>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">
-          Cancel
-        </el-button>
-        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">
-          Confirm
-        </el-button>
-      </div>
-    </el-dialog>
-
-    <el-dialog :visible.sync="dialogPvVisible" title="Reading statistics">
-      <el-table :data="pvData" border fit highlight-current-row style="width: 100%">
-        <el-table-column prop="key" label="Channel" />
-        <el-table-column prop="pv" label="Pv" />
-      </el-table>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="dialogPvVisible = false">Confirm</el-button>
-      </span>
     </el-dialog>
   </div>
 </template>
-
 <script>
-import { fetchPv, createArticle, updateArticle } from '@/api/article'
-import waves from '@/directive/waves' // waves directive
-import { parseTime } from '@/utils'
-import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {loadRegionList, loadWaterStationList} from '@/api/admin'
-
+let that;
 export default {
-  name: 'ComplexTable',
-  components: { Pagination },
-  directives: { waves },
-  filters: {
-    statusFilter(status) {
-      const statusMap = {
-        published: 'success',
-        draft: 'info',
-        deleted: 'danger'
-      }
-      return statusMap[status]
+  data() {
+    return {
+      listLoading: true,
+
+      editRowForm: {
+        areaID: "",
+        areaOldName: "",
+        areaName: "",
+        areaType: "1",
+      },
+      editRowDialogVisible: false,
+      editRowIsAdd: true,
+
+      itemsOnPage: 10, //分页基数
+      currentPage: 1, //当前页
+
+      allData: [], //区域列表全部数据
+      dataSource: [], //当前页面区域列表数据
+
+      empty_notice: '加载中...',
+      areaArray: [{
+          value: "1",
+          label: '政府区域'
+        },
+        {
+          value: "2",
+          label: '华晨区域'
+        }
+      ],
     }
   },
   computed: {
-    areaTypeRender() {
-      return function(type) {
-        let typelabel = null;
-        this.areaTypeOptions.forEach(element => {
-          console.log('element :>> ', element);
-          if (element.value == type) {
-            typelabel = element.label;
-          }
-        });
-        return typelabel;
-      }
-    },
-  },
-  data() {
-    return {
-      tableKey: 0,
-      list: null,
-      total: 0,
-      listLoading: true,
-      listQuery: {
-        page: 1,
-        limit: 20,
-        type: undefined,
-        title: undefined,
-        type: undefined,
-        sort: '+id'
-      },
-      areaTypeOptions: [{
-        value: '1',
-        label: '政府区域'
-      }, {
-        value: '2',
-        label: '华晨区域'
-      }],
-      // calendarareaTypeOptions,
-      sortOptions: [{ label: 'ID Ascending', key: '+id' }, { label: 'ID Descending', key: '-id' }],
-      statusOptions: ['published', 'draft', 'deleted'],
-      showReviewer: false,
-      temp: {
-        id: undefined,
-        type: '1',
-        remark: '',
-        timestamp: new Date(),
-        title: '',
-        type: '',
-        status: 'published'
-      },
-      dialogFormVisible: false,
-      dialogStatus: '',
-      textMap: {
-        update: 'Edit',
-        create: 'Create'
-      },
-      dialogPvVisible: false,
-      pvData: [],
-      rules: {
-        type: [{ required: true, message: 'type is required', trigger: 'change' }],
-        timestamp: [{ type: 'date', required: true, message: 'timestamp is required', trigger: 'change' }],
-        title: [{ required: true, message: 'title is required', trigger: 'blur' }]
-      },
-      downloadLoading: false
+    editRowDialogTitle: function() {
+      return this.editRowIsAdd?"添加区域":"修改区域";
     }
   },
-  created() {
-    this.getList()
+  components: {},
+  watch: {},
+  filters: {
+    nullValueFormat(transValue) {
+      return transValue ? transValue : "-";
+    },
+    filterAreaType(type) {
+      let typename = null;
+
+      let find = that.areaArray.find(function(element) {
+        return element.value == type;
+      });
+
+      if (find) {
+        typename = find.label;
+      }
+
+      return typename | that.nullValueFormat;
+    }
+  },
+  mounted() {
+    // 获取admin账号的区域列表
+    this.getAreaList();
+  },
+  beforeCreate() {
+    that = this;
+  },
+
+  beforeDestroy() {
+    // $('.modal').modal('hide');
   },
   methods: {
-    getList() {
-      this.listLoading = true
-      console.log('获取区域列表...');
-      loadRegionList().then((res) => {
-        console.log('获取区域列表...', res);
-        if (res.result == 'success') {
-          this.list = res.data;
-          this.total = res.data.length;
-          this.listLoading = false;
-        } else {
-          this.$message({
-            message: '加载区域列表失败',
-            type: 'error',
-            duration: 5 * 1000
-          })
-        }
-      }).catch(() => {
-          this.$message({
-            message: '加载区域列表失败',
-            type: 'error',
-            duration: 5 * 1000
-          })
-      });
+    indexMethod(index) {
+      return (this.currentPage - 1) * this.itemsOnPage + index + 1;
     },
-    
-    handleFilter() {
-      this.listQuery.page = 1
-      this.getList()
+    handleSizeChange(val) {
+      this.itemsOnPage = val;
+      this.getDataSource();
     },
-    handleModifyStatus(row, status) {
-      this.$message({
-        message: '操作Success',
-        type: 'success'
-      })
-      row.status = status
+    handleCurrentChange(val) {
+      this.currentPage = val;
+      this.getDataSource();
     },
-    sortChange(data) {
-      const { prop, order } = data
-      if (prop === 'id') {
-        this.sortByID(order)
-      }
+    getDataSource() {
+      let tmpSliceNumber = (this.currentPage - 1) * this.itemsOnPage;
+      this.dataSource = this.allData.slice(tmpSliceNumber, (tmpSliceNumber + this.itemsOnPage));
     },
-    sortByID(order) {
-      if (order === 'ascending') {
-        this.listQuery.sort = '+id'
+    /**
+     * [获取admin账号的区域列表]
+     * @return {[type]} [description]
+     */
+    getAreaList() {
+      try {
+        this.listLoading = true
+        this.$fetch({
+          url: '/Web/Manage/region_list?action=get',
+          method: "get"
+        }).then(res => {
+          let jsonData = res.data;
+          if (jsonData.result == "success") {
+            this.allData = jsonData.data;
+            this.getDataSource();
+            if (this.dataSource.length == 0) {
+              this.empty_notice = '暂无数据,请添加区域';
+            }
+          } else {
+            this.$popup.showToastErrmsg(jsonData.errmsg);
+          }
+        }).finally(() => {
+          this.listLoading = false
+        });
+      } catch (e) {
+        this.$popup.showToastErrmsg();
+        console.log("getAreaList: " + e);
+      };
+    },
+
+    addArea(data) {
+      if (!data) {
+        // this.editRowTitle = "添加区域";
+        this.editRowIsAdd = true;
+
+        this.editRowForm.areaID = "";
+        this.editRowForm.areaName = "";
+        this.editRowForm.areaType = "1";
+
       } else {
-        this.listQuery.sort = '-id'
+        // this.editRowTitle = "修改区域";
+        this.editRowIsAdd = false;
+
+        this.editRowForm.areaID = data.id;
+        this.editRowForm.areaName = data.region;
+        this.editRowForm.areaOldName = data.region;
+        this.editRowForm.areaType = String(data.type);
       }
-      this.handleFilter()
+
+      this.editRowDialogVisible = true;
     },
-    resetTemp() {
-      this.temp = {
-        id: undefined,
-        type: 1,
-        remark: '',
-        timestamp: new Date(),
-        title: '',
-        status: 'published',
-        type: ''
+    /**
+     * [保存区域设置]
+     * @return {[type]} [description]
+     */
+    areaManageSave() {
+      if (!this.editRowForm.areaName) {
+        this.$popup.showToastErrmsg("请填写区域名称");
+        return;
       }
+      if (!this.editRowIsAdd && this.editRowForm.areaName == this.areaOldName) {
+        this.$popup.showToastErrmsg("区域名称未作修改");
+        return;
+      }
+      this.areaManageSaveCallback();
     },
-    handleCreate() {
-      this.resetTemp()
-      this.dialogStatus = 'create'
-      this.dialogFormVisible = true
-      this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
-    },
-    createData() {
-      this.$refs['dataForm'].validate((valid) => {
-        if (valid) {
-          this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
-          this.temp.author = 'vue-element-admin'
-          createArticle(this.temp).then(() => {
-            this.list.unshift(this.temp)
-            this.dialogFormVisible = false
-            this.$notify({
-              title: 'Success',
-              message: 'Created Successfully',
-              type: 'success',
-              duration: 2000
-            })
-          })
+    /**
+     * [保存区域设置回调函数]
+     * @return {[type]} [description]
+     */
+    areaManageSaveCallback() {
+      try {
+        let _tmpDataJson = {
+          url: '',
+          data: {
+
+          }
+        };
+        // 添加
+        if (this.editRowIsAdd) {
+          _tmpDataJson.url = "/Web/Manage/region_create?action=post";
+          _tmpDataJson.data = {
+            region: this.editRowForm.areaName,
+            type: this.editRowForm.areaType,
+          }
+        } else {
+          // 修改
+          _tmpDataJson.url = "/Web/Manage/region_change?action=post";
+          _tmpDataJson.data = {
+            id: this.editRowForm.areaID,
+            region: this.editRowForm.areaName,
+          }
         }
-      })
+        this.$fetch({
+          url: _tmpDataJson.url,
+          method: "post",
+          data: _tmpDataJson.data,
+        }).then(res => {
+          let jsonData = res.data;
+          if (jsonData.result == "success") {
+            this.$popup.showToastErrmsg("保存成功");
+            this.editRowDialogVisible = false;
+            // 更新数据
+            this.getAreaList();
+          } else {
+            this.$popup.showToastErrmsg(jsonData.errmsg, "保存失败");
+          }
+        });
+      } catch (e) {
+        this.$popup.showToastErrmsg("保存失败");
+        console.log("areaManageSaveCallback: " + e);
+      };
     },
-    handleUpdate(row) {
-      this.temp = Object.assign({}, row) // copy obj
-      this.temp.timestamp = new Date(this.temp.timestamp)
-      this.dialogStatus = 'update'
-      this.dialogFormVisible = true
-      this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
-    },
-    updateData() {
-      this.$refs['dataForm'].validate((valid) => {
-        if (valid) {
-          const tempData = Object.assign({}, this.temp)
-          tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-          updateArticle(tempData).then(() => {
-            const index = this.list.findIndex(v => v.id === this.temp.id)
-            this.list.splice(index, 1, this.temp)
-            this.dialogFormVisible = false
-            this.$notify({
-              title: 'Success',
-              message: 'Update Successfully',
-              type: 'success',
-              duration: 2000
-            })
-          })
-        }
-      })
-    },
-    handleDelete(row, index) {
-      this.$notify({
-        title: 'Success',
-        message: 'Delete Successfully',
-        type: 'success',
-        duration: 2000
-      })
-      this.list.splice(index, 1)
-    },
-    handleFetchPv(pv) {
-      fetchPv(pv).then(response => {
-        this.pvData = response.data.pvData
-        this.dialogPvVisible = true
-      })
-    },
-    handleDownload() {
-      this.downloadLoading = true
-      // import('@/vendor/Export2Excel').then(excel => {
-      //   const tHeader = ['timestamp', 'title', 'type', 'type', 'status']
-      //   const filterVal = ['timestamp', 'title', 'type', 'type', 'status']
-      //   const data = this.formatJson(filterVal)
-      //   excel.export_json_to_excel({
-      //     header: tHeader,
-      //     data,
-      //     filename: 'table-list'
-      //   })
-      //   this.downloadLoading = false
-      // })
-    },
-    // formatJson(filterVal) {
-    //   return this.list.map(v => filterVal.map(j => {
-    //     if (j === 'ctime') {
-    //       return parseTime(v[j])
-    //     } else {
-    //       return v[j]
-    //     }
-    //   }))
-    // },
-    getSortClass: function(key) {
-      const sort = this.listQuery.sort
-      return sort === `+${key}` ? 'ascending' : 'descending'
-    }
   }
 }
 </script>
+
+<style scope>
+.width500{
+    width: 35.714286rem;
+}
+</style>

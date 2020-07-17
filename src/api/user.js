@@ -18,7 +18,7 @@ import {
   USER_ROLE_TYPE,
   USER_MANAGER_ID,
   USER_LOGIN_TIME
-} from '@/store/modules/user';
+} from '@/utils/user';
 
 /**
  * @description: 用户登录

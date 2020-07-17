@@ -11,11 +11,7 @@ import {
   USER_ROLE_TYPE,
   USER_MANAGER_ID,
   USER_LOGIN_TIME
-} from '@/store/modules/user';
-
-import {
-  getToken
-} from '@/utils/auth'
+} from '@/utils/user';
 
 import qs from 'qs';
 
@@ -142,5 +138,11 @@ service.interceptors.response.use(
     return Promise.reject(error.response.data)
   }
 )
+
+service.install = function (Vue, options) {
+  Vue.prototype.$fetch = function(options) {
+    return service(options);
+  }
+};
 
 export default service

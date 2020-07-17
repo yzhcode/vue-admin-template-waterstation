@@ -119,10 +119,10 @@
                             this.$router.replace({name:"login"});
                         }
                     }).finally(() => {
-                        this.$loading.hide();
+                        /// this.$loading.hide();
                     });
                 }catch(e){
-                    this.global_.showToastErrmsg("退出登陆 请求失败");
+                    this.$showToastErrmsg("退出登陆 请求失败");
                     console.log("getAreaList: "+e);
                 };
             },
